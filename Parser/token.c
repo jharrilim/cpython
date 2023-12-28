@@ -30,6 +30,7 @@ const char * const _PyParser_TokenNames[] = {
     "GREATER",
     "EQUAL",
     "DOT",
+    "QUESTIONDOT",
     "PERCENT",
     "LBRACE",
     "RBRACE",
@@ -172,6 +173,11 @@ _PyToken_TwoChars(int c1, int c2)
         switch (c2) {
         case '=': return GREATEREQUAL;
         case '>': return RIGHTSHIFT;
+        }
+        break;
+    case '?':
+        switch (c2) {
+        case '.': return QUESTIONDOT;
         }
         break;
     case '@':

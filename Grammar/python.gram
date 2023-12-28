@@ -539,6 +539,8 @@ value_pattern[pattern_ty]:
 attr[expr_ty]:
     | value=name_or_attr '.' attr=NAME {
         _PyAST_Attribute(value, attr->v.Name.id, Load, EXTRA) }
+    | value=name_or_attr '?.' attr=NAME {
+        _PyAST_OptionalAttribute(value, attr->v.Name.id, Load, EXTRA) }
 
 name_or_attr[expr_ty]:
     | attr
@@ -1077,7 +1079,7 @@ t_primary[expr_ty]:
                  EXTRA) }
     | a=atom &t_lookahead { a }
 
-t_lookahead: '(' | '[' | '.'
+t_lookahead: '(' | '[' | '.' | '?.'
 
 # Targets for del statements
 # --------------------------

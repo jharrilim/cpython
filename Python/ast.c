@@ -226,6 +226,9 @@ validate_expr(struct validator *state, expr_ty exp, expr_context_ty ctx)
     case Attribute_kind:
         actual_ctx = exp->v.Attribute.ctx;
         break;
+    case OptionalAttribute_kind:
+        actual_ctx = exp->v.OptionalAttribute.ctx;
+        break;
     case Subscript_kind:
         actual_ctx = exp->v.Subscript.ctx;
         break;
@@ -361,6 +364,9 @@ validate_expr(struct validator *state, expr_ty exp, expr_context_ty ctx)
         break;
     case Attribute_kind:
         ret = validate_expr(state, exp->v.Attribute.value, Load);
+        break;
+    case OptionalAttribute_kind:
+        ret = validate_expr(state, exp->v.OptionalAttribute.value, Load);
         break;
     case Subscript_kind:
         ret = validate_expr(state, exp->v.Subscript.slice, Load) &&
@@ -502,6 +508,8 @@ validate_pattern_match_value(struct validator *state, expr_ty exp)
         case Attribute_kind:
             // Constants and attribute lookups are always permitted
             return 1;
+        case OptionalAttribute_kind:
+            return 1;
         case UnaryOp_kind:
             // Negated numbers are permitted (whether real or imaginary)
             // Compiler will complain if AST folding doesn't create a constant
@@ -618,6 +626,10 @@ validate_pattern(struct validator *state, pattern_ty p, int star_ok)
                 }
                 else if (cls->kind == Attribute_kind) {
                     cls = cls->v.Attribute.value;
+                    continue;
+                }
+                else if (cls->kind == OptionalAttribute_kind) {
+                    cls = cls->v.OptionalAttribute.value;
                     continue;
                 }
                 else {
