@@ -2216,6 +2216,9 @@ symtable_visit_expr(struct symtable *st, expr_ty e)
     case Constant_kind:
         /* Nothing to do here. */
         break;
+    case OptionalAttribute_kind:
+        VISIT(st, expr, e->v.OptionalAttribute.value);
+        break;
     /* The following exprs can be assignment targets. */
     case Attribute_kind:
         VISIT(st, expr, e->v.Attribute.value);

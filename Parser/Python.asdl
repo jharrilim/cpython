@@ -81,6 +81,8 @@ module Python
          | JoinedStr(expr* values)
          | Constant(constant value, string? kind)
 
+         | OptionalAttribute(expr value, identifier attr, expr_context ctx)
+
          -- the following expression can appear in assignment context
          | Attribute(expr value, identifier attr, expr_context ctx)
          | Subscript(expr value, expr slice, expr_context ctx)

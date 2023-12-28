@@ -81,6 +81,10 @@
 
    Token value for ``"."``.
 
+.. data:: QUESTIONDOT
+
+   Token value for ``"?."``.
+
 .. data:: PERCENT
 
    Token value for ``"%"``.

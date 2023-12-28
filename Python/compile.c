@@ -4862,7 +4862,7 @@ static location
 update_start_location_to_match_attr(struct compiler *c, location loc,
                                     expr_ty attr)
 {
-    assert(attr->kind == Attribute_kind);
+    assert(attr->kind == Attribute_kind || attr->kind == OptionalAttribute_kind);
     if (loc.lineno != attr->end_lineno) {
         loc.lineno = attr->end_lineno;
         int len = (int)PyUnicode_GET_LENGTH(attr->v.Attribute.attr);
@@ -6215,6 +6215,35 @@ compiler_visit_expr1(struct compiler *c, expr_ty e)
         return compiler_joined_str(c, e);
     case FormattedValue_kind:
         return compiler_formatted_value(c, e);
+    case OptionalAttribute_kind:
+        // Temporarily a direct copy of Attribute_kind
+        if (e->v.OptionalAttribute.ctx == Load && can_optimize_super_call(c, e)) {
+            RETURN_IF_ERROR(load_args_for_super(c, e->v.OptionalAttribute.value));
+            int opcode = asdl_seq_LEN(e->v.OptionalAttribute.value->v.Call.args) ?
+                LOAD_SUPER_ATTR : LOAD_ZERO_SUPER_ATTR;
+            ADDOP_NAME(c, loc, opcode, e->v.OptionalAttribute.attr, names);
+            loc = update_start_location_to_match_attr(c, loc, e);
+            ADDOP(c, loc, NOP);
+            return SUCCESS;
+        }
+        VISIT(c, expr, e->v.OptionalAttribute.value);
+        loc = LOC(e);
+        loc = update_start_location_to_match_attr(c, loc, e);
+        switch (e->v.OptionalAttribute.ctx) {
+        case Load:
+            ADDOP_NAME(c, loc, LOAD_ATTR, e->v.OptionalAttribute.attr, names);
+            break;
+        case Store:
+            if (forbidden_name(c, loc, e->v.OptionalAttribute.attr, e->v.OptionalAttribute.ctx)) {
+                return ERROR;
+            }
+            ADDOP_NAME(c, loc, STORE_ATTR, e->v.OptionalAttribute.attr, names);
+            break;
+        case Del:
+            ADDOP_NAME(c, loc, DELETE_ATTR, e->v.OptionalAttribute.attr, names);
+            break;
+        }
+        break;
     /* The following exprs can be assignment targets. */
     case Attribute_kind:
         if (e->v.Attribute.ctx == Load && can_optimize_super_call(c, e)) {
